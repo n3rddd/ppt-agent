@@ -58,6 +58,7 @@ openspec/changes/<run_id>/
 ├── drafts/slide-{nn}.svg    # 规划草稿
 ├── slides/slide-{nn}.svg    # 设计稿
 ├── reviews/review-{nn}.md   # 审查报告
+├── review-manifest.json     # 审查汇总（Phase 6→7 质量门控）
 └── output/
     ├── slide-{nn}.svg       # 最终 SVG
     └── index.html           # 交互式预览页

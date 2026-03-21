@@ -37,6 +37,7 @@ Generate professional PPT slides as SVG files (1280x720) through a structured mu
 - `${RUN_DIR}/slides/slide-{nn}.svg`
 - `${RUN_DIR}/reviews/review-{nn}.md`
 - `${RUN_DIR}/reviews/review-holistic.md`
+- `${RUN_DIR}/review-manifest.json`
 - `${RUN_DIR}/output/`
 - `${RUN_DIR}/output/index.html`
 - `${RUN_DIR}/output/speaker-notes.md`
@@ -174,15 +175,58 @@ For each slide (or in batches):
    Evaluates cross-slide consistency, visual rhythm, narrative arc, and pacing.
    If holistic score < 7, flag specific issues for manual review but do not block delivery.
 
+5. **Write review manifest** (`${RUN_DIR}/review-manifest.json`):
+   After holistic review completes, the lead aggregates all review results into a single checkpoint artifact:
+   ```json
+   {
+     "total_slides": 12,
+     "review_engine": "gemini" | "claude-self-review",
+     "slides": [
+       {
+         "index": 1,
+         "file": "slides/slide-01.svg",
+         "final_score": 8.2,
+         "fix_rounds": 0,
+         "status": "passed",
+         "scores": {
+           "layout": 8, "color": 9, "typography": 8, "readability": 8, "density": 8
+         }
+       },
+       {
+         "index": 5,
+         "file": "slides/slide-05.svg",
+         "final_score": 6.8,
+         "fix_rounds": 2,
+         "status": "accepted_with_warning",
+         "scores": { "layout": 7, "color": 7, "typography": 7, "readability": 6, "density": 7 },
+         "warning": "Readability at gate threshold after 2 fix rounds"
+       }
+     ],
+     "holistic": {
+       "score": 7.5,
+       "status": "passed",
+       "issues": []
+     },
+     "summary": {
+       "passed": 10,
+       "accepted_with_warning": 2,
+       "avg_score": 7.8
+     }
+   }
+   ```
+   This manifest serves as the quality gate record between Phase 6 and Phase 7. Phase 7 reads it to determine which slides to deliver and to generate the quality summary.
+
 ## Phase 7: Delivery (Hard Stop)
 
-1. Collect all final SVGs into `${RUN_DIR}/output/`:
+1. **Read review manifest** (`${RUN_DIR}/review-manifest.json`) to determine delivery scope and quality status.
+
+2. Collect all final SVGs into `${RUN_DIR}/output/`:
    ```bash
    mkdir -p "${RUN_DIR}/output"
    cp "${RUN_DIR}/slides/"*.svg "${RUN_DIR}/output/"
    ```
 
-2. **Generate HTML preview page** (`${RUN_DIR}/output/index.html`):
+3. **Generate HTML preview page** (`${RUN_DIR}/output/index.html`):
    1. Read the template from `plugins/ppt-agent/skills/_shared/assets/preview-template.html`.
    2. Read `${RUN_DIR}/outline.json` to extract slide titles for labels.
    3. Replace template placeholders:
@@ -206,7 +250,7 @@ For each slide (or in batches):
 
    Keyboard shortcuts: `P` present / `G` gallery / `S` scroll / `F` fullscreen / `N` notes / `←→` navigate / `Esc` exit
 
-3. **Generate speaker notes** (`${RUN_DIR}/output/speaker-notes.md`):
+4. **Generate speaker notes** (`${RUN_DIR}/output/speaker-notes.md`):
    Read `${RUN_DIR}/outline.json` and extract all `notes` fields. Format as a markdown document indexed by slide number:
    ```markdown
    # Speaker Notes: {presentation_title}
@@ -225,7 +269,7 @@ For each slide (or in batches):
    ```
    Include total estimated presentation time at the bottom.
 
-4. **Open preview** in the user's default browser (platform-adaptive):
+5. **Open preview** in the user's default browser (platform-adaptive):
    ```bash
    # macOS
    open "${RUN_DIR}/output/index.html"
@@ -236,10 +280,13 @@ For each slide (or in batches):
    ```
    Detect platform via `$OSTYPE` or `uname` and use the appropriate command.
 
-5. Print final summary:
+6. Print final summary (sourced from `review-manifest.json`):
    - Total slides generated
    - Style applied
-   - Quality scores per slide (from review files)
+   - Review engine used (Gemini / Claude self-review)
+   - Quality scores per slide: index, score, status, fix rounds
+   - Slides with warnings (accepted_with_warning) highlighted
+   - Holistic review score
    - Average quality score
    - File paths to output SVGs
    - Preview URL: `${RUN_DIR}/output/index.html`

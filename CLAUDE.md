@@ -75,6 +75,7 @@ Keyboard: `P` present / `G` gallery / `S` scroll / `F` fullscreen / `←→` nav
 - `draft-manifest.json`
 - `slides/slide-{nn}.svg`
 - `reviews/review-{nn}.md`
+- `review-manifest.json` — Phase 6→7 quality gate checkpoint
 - `output/` — final deliverables:
   - `slide-{nn}.svg` — final design SVGs
   - `index.html` — interactive HTML preview page
