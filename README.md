@@ -4,6 +4,17 @@
 
 由 Claude 生成 + Gemini 审查，输出 SVG 1280×720 Bento Grid 布局的演示幻灯片。
 
+## 效果展示
+
+> `/ppt-agent:ppt 帮我收集一下新一代小米su7的发布会资料然后做一套PPT`
+
+| | | |
+|:---:|:---:|:---:|
+| ![封面](docs/images/slide-01.png) | ![产品定位](docs/images/slide-02.png) | ![外观设计](docs/images/slide-03.png) |
+| ![性能参数](docs/images/slide-04.png) | ![标配亮点](docs/images/slide-05.png) | ![智能座舱](docs/images/slide-06.png) |
+| ![智能驾驶](docs/images/slide-07.png) | ![安全体系](docs/images/slide-08.png) | ![续航充电](docs/images/slide-09.png) |
+| ![产品矩阵](docs/images/slide-10.png) | ![生态布局](docs/images/slide-11.png) | ![结尾](docs/images/slide-12.png) |
+
 ## 安装
 
 ```bash
