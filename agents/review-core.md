@@ -1,6 +1,6 @@
 ---
 name: review-core
-description: "Review agent for SVG slide quality assessment via Gemini"
+description: "Layout and aesthetic optimization agent for SVG slides via Gemini"
 tools:
   - Read
   - Write
@@ -18,7 +18,7 @@ disallowedTools:
 # Review Core Agent
 
 ## Purpose
-Review SVG slide quality via Gemini and provide structured pass/fail assessment with fix suggestions.
+Optimize SVG slide layout and aesthetics via Gemini. Gemini's role is to propose concrete visual improvements (not just check compliance), then score and gate the results. All Gemini outputs are preserved as intermediate artifacts.
 
 ## Inputs
 - `run_dir`
@@ -50,13 +50,14 @@ Only proceed to LLM review if no Critical automated checks fail.
    - The **full SVG source code** (MUST be included — reviewing by filename alone is forbidden per `gemini-cli/SKILL.md` constraints)
    - The **style token values** (color scheme, typography, card style)
    - The **slide context** (index, title, presentation style name)
-6. Call Gemini for review:
+6. Call Gemini for layout & aesthetic optimization:
    ```
-   Skill(skill="ppt-agent:gemini-cli", args="role=reviewer prompt=\"## Task\nReview SVG slide ${slide_index}.\n\n## Slide Content\n${SVG_SOURCE}\n\n## Style Reference\n${STYLE_NAME} with tokens: ${STYLE_TOKENS}\n\n## Review Criteria\n1. Layout Balance\n2. Color Harmony\n3. Typography\n4. Readability\n5. Information Density\"")
+   Skill(skill="ppt-agent:gemini-cli", args="role=reviewer prompt=\"## Task\nOptimize SVG slide ${slide_index} layout and visual aesthetics.\n\n## Slide Content\n${SVG_SOURCE}\n\n## Style Reference\n${STYLE_NAME} with tokens: ${STYLE_TOKENS}\n\n## Optimization Criteria\n1. Layout Balance\n2. Color Harmony\n3. Typography\n4. Readability\n5. Information Density\"")
    ```
+   Gemini's raw output is auto-saved to `${run_dir}/reviews/gemini-raw-{slide_index}.md` — **this file must be preserved** as an intermediate artifact.
 7. Handle the result per `gemini-cli/SKILL.md` Fallback Strategy:
-   - **Gemini available (exit 0)**: Use Gemini's structured review.
-   - **Gemini unavailable (exit 2)**: Fall back to Claude self-review using `gemini-cli/references/roles/reviewer.md` quality standards. Mark review as "Claude self-review".
+   - **Gemini available (exit 0)**: Use Gemini's structured optimization suggestions.
+   - **Gemini unavailable (exit 2)**: Fall back to Claude self-optimization using `gemini-cli/references/roles/reviewer.md` quality standards. Mark as "Claude self-optimization".
    - **Script error (exit 1)**: Fix args and retry.
 8. Write `reviews/review-{slide_index}.md` with:
    - **Score**: overall quality score (1-10)
@@ -91,8 +92,9 @@ For `mode=holistic`: read ALL `${run_dir}/slides/slide-*.svg` files and evaluate
 - Information density within per-type targets (see Content Density Targets in `reviewer.md`)
 
 ## Skill Policy
-- Use `ppt-agent:gemini-cli` with `role=reviewer` for all review tasks.
-- Do not generate SVG or modify slides directly — only assess and suggest.
+- Use `ppt-agent:gemini-cli` with `role=reviewer` for all optimization tasks.
+- Do not generate SVG or modify slides directly — only assess, optimize, and suggest.
+- Preserve Gemini raw outputs (`gemini-raw-*.md`) as intermediate artifacts — never delete them.
 
 ## Verification
 - Review file exists with all required sections.

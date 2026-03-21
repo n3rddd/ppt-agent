@@ -1,8 +1,8 @@
 ---
 name: gemini-cli
 description: |
-  [Trigger] When PPT workflow needs SVG slide quality review via Gemini.
-  [Output] Structured review assessment with scores, pass/fail, and fix suggestions.
+  [Trigger] When PPT workflow needs SVG slide layout and aesthetic optimization via Gemini.
+  [Output] Structured optimization suggestions with scores and concrete layout/style improvements.
   [Skip] For content authoring or SVG generation tasks (those are handled by Claude).
   [Ask] No user input needed; invoked by review-core agent.
   [Resource Usage] Use references/, scripts/ (`scripts/invoke-gemini-ppt.ts`).
@@ -25,9 +25,9 @@ arguments:
     description: "Image path for vision tasks (rendered SVG screenshots)"
 ---
 
-# Gemini CLI - PPT Slide Reviewer
+# Gemini CLI - PPT Slide Layout & Aesthetic Optimizer
 
-SVG slide quality reviewer via `scripts/invoke-gemini-ppt.ts`. Evaluates layout, visual hierarchy, color harmony, typography, and readability. The script automatically tries fallback models if the primary model is unavailable.
+SVG slide layout and aesthetic optimizer via `scripts/invoke-gemini-ppt.ts`. Gemini's role is to **optimize layout and improve visual aesthetics** — not just check compliance. It evaluates layout balance, visual hierarchy, color harmony, typography, and readability, then proposes concrete improvements. The script automatically tries fallback models if the primary model is unavailable.
 
 ## Script Entry
 
@@ -47,9 +47,9 @@ npx tsx scripts/invoke-gemini-ppt.ts \
 
 ## Roles
 
-| Role     | Purpose                        | CLI Flag          |
-| -------- | ------------------------------ | ----------------- |
-| reviewer | SVG slide quality review       | `--role reviewer` |
+| Role     | Purpose                              | CLI Flag          |
+| -------- | ------------------------------------ | ----------------- |
+| reviewer | SVG slide layout & aesthetic optimization | `--role reviewer` |
 
 ## Workflow
 
@@ -57,7 +57,7 @@ npx tsx scripts/invoke-gemini-ppt.ts \
 
 Before calling Gemini, read the SVG file content and the relevant style YAML so you can include them in the prompt. The reviewer needs the actual SVG source code to inspect element attributes (font-size, fill, opacity, coordinates).
 
-### Step 2: Build the review prompt
+### Step 2: Build the optimization prompt
 
 Construct a prompt that includes:
 - The full SVG source code (or relevant excerpts for very large files)
@@ -77,19 +77,19 @@ The script tries models in order: default → gemini-2.5-pro → gemini-2.5-flas
 
 ### Step 4: Handle the result
 
-- **Exit code 0**: Gemini responded. Read the output file and extract the structured review.
-- **Exit code 2**: All Gemini models unavailable. **Fall back to Claude self-review** using the same quality standards from `references/roles/reviewer.md`. This is the expected degradation path — the review must still happen, just without the cross-model perspective.
+- **Exit code 0**: Gemini responded. The raw output is already persisted at `${RUN_DIR}/reviews/gemini-raw-{nn}.md` — **do not delete it**. Read and extract the structured optimization suggestions.
+- **Exit code 2**: All Gemini models unavailable. **Fall back to Claude self-optimization** using the same quality standards from `references/roles/reviewer.md`. This is the expected degradation path — optimization must still happen, just without the cross-model perspective.
 - **Exit code 1**: Script error (bad args, missing file). Fix and retry.
 
-### Step 5: Write the final review
+### Step 5: Write the final optimization report
 
-Whether from Gemini or Claude fallback, write the structured review to `${run_dir}/reviews/review-{nn}.md` using the output format defined in `references/roles/reviewer.md`.
+Whether from Gemini or Claude fallback, write the structured report to `${run_dir}/reviews/review-{nn}.md` using the output format defined in `references/roles/reviewer.md`. The Gemini raw output (`gemini-raw-{nn}.md`) is preserved as an intermediate artifact for traceability.
 
 ---
 
 ## Prompt Templates
 
-### Role: reviewer — SVG Quality Review
+### Role: reviewer — SVG Layout & Aesthetic Optimization
 
 ```bash
 npx tsx scripts/invoke-gemini-ppt.ts \
@@ -97,7 +97,7 @@ npx tsx scripts/invoke-gemini-ppt.ts \
   --output "${RUN_DIR}/reviews/gemini-raw-${N}.md" \
   --prompt "
 ## Task
-Review the SVG presentation slide for design quality.
+Optimize the SVG presentation slide's layout and visual aesthetics. Identify what works well and propose concrete improvements to make the slide more visually compelling.
 
 ## Slide Content
 ${SVG_CONTENT}
@@ -126,13 +126,20 @@ Structured review with:
 
 ## Fallback Strategy
 
-The dual-model approach (Claude generates, Gemini reviews) provides value through independent perspective. When Gemini is unavailable, the review-core agent should:
+The dual-model approach (Claude generates, Gemini optimizes) provides value through independent aesthetic perspective. When Gemini is unavailable, the review-core agent should:
 
 1. Read `references/roles/reviewer.md` for quality standards and methodology.
-2. Apply the same structured review process: 5 criteria, numeric scores, pass/fail gate, issue severity, actionable fixes.
-3. Mark the review as "Claude self-review" in the output header so downstream consumers know it was not cross-model validated.
+2. Apply the same structured optimization process: 5 criteria, numeric scores, pass/fail gate, issue severity, actionable improvements.
+3. Mark the output as "Claude self-optimization" in the header so downstream consumers know it was not cross-model validated.
 
-The review quality standards (14px min font, 20px min gap, WCAG AA contrast, 7±2 info units) are the same regardless of which model performs the review.
+The quality standards (14px min font, 20px min gap, WCAG AA contrast, 7±2 info units) are the same regardless of which model performs the optimization.
+
+## Intermediate Artifact Preservation
+
+Gemini's raw output (`gemini-raw-{nn}.md`) MUST be preserved in `${RUN_DIR}/reviews/`. These files serve as:
+- **Traceability**: what Gemini actually suggested vs what was applied
+- **Debugging**: if a fix round makes things worse, the original suggestion is available
+- **Learning**: patterns in Gemini's suggestions can inform future style token tuning
 
 ---
 
@@ -143,7 +150,7 @@ The review quality standards (14px min font, 20px min gap, WCAG AA contrast, 7±
 | MUST attempt Gemini via script first      | Skip Gemini without trying              |
 | MUST fall back to self-review on exit 2   | Fail the entire review if Gemini is down|
 | MUST use reviewer role quality standards  | Send generic/empty prompts to Gemini    |
-| MUST persist output to run_dir artifacts  | Discard Gemini output                   |
+| MUST persist ALL output to run_dir artifacts | Discard Gemini output (gemini-raw-*.md) |
 | Review MUST produce structured scores     | Return vague qualitative-only feedback  |
 | MUST include SVG source in the prompt     | Review based on filename alone          |
 

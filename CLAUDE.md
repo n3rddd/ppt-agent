@@ -7,6 +7,7 @@ Always answer in Chinese (Simplified).
 | Skill             | Trigger                                                                   | Description                                                              |
 | ----------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `/ppt-agent:ppt`  | "PPT", "slides", "幻灯片", "做个PPT", "slide deck", "演示文稿", "做演示" | PPT slide generation workflow: init → research → outline → design → delivery |
+| `agent-reach`     | "search Twitter/Reddit/YouTube", "read this URL", "搜索", "查一下"        | Self-contained multi-platform search & read (zero external dependencies) |
 
 </available-skills>
 
@@ -29,19 +30,19 @@ Always answer in Chinese (Simplified).
 - `ppt-agent:research-core` — requirement research + material collection
 - `ppt-agent:content-core` — outline planning + planning draft
 - `ppt-agent:slide-core` — design SVG generation with Bento Grid
-- `ppt-agent:review-core` — Gemini-powered SVG quality review
+- `ppt-agent:review-core` — Gemini-powered SVG layout & aesthetic optimization
 
 All agents are spawned via `Task()` calls. No Agent Team required — agents communicate only with the lead orchestrator via `SendMessage` (heartbeat, ready, error signals), not with each other directly.
 
 ## Skill Invocation Conventions
 
-- `ppt-agent:research-core` uses `agent-reach` skill for web search.
-- `ppt-agent:review-core` invokes `ppt-agent:gemini-cli` for SVG review.
+- `ppt-agent:research-core` uses `agent-reach` skill for web search (self-contained, no external installer needed — probes and uses whatever upstream tools are available on the machine).
+- `ppt-agent:review-core` invokes `ppt-agent:gemini-cli` for SVG layout & aesthetic optimization. Gemini's raw outputs (`gemini-raw-*.md`) are preserved as intermediate artifacts in `${RUN_DIR}/reviews/`.
 - Prompt references are in `skills/_shared/references/prompts/`.
 - Style tokens are in `skills/_shared/references/styles/`. Available styles are discovered from `skills/_shared/index.json` (domain=style).
 - HTML preview template is in `skills/_shared/assets/preview-template.html`.
 - `outline.json` schema is defined in `skills/_shared/references/prompts/outline-architect.md` (single source of truth).
-- Review fallback policy is defined in `skills/gemini-cli/SKILL.md` (single source of truth). When Gemini is unavailable, Claude self-review is used — reviews are never skipped.
+- Optimization fallback policy is defined in `skills/gemini-cli/SKILL.md` (single source of truth). When Gemini is unavailable, Claude self-optimization is used — optimization is never skipped.
 - Brand color override is supported via `--brand-colors=<path>` flag. Brand styles are written to `${RUN_DIR}/brand-style.yaml`.
 
 ## HTML Preview Template
