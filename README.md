@@ -1,56 +1,56 @@
 # PPT Agent
 
-Multi-agent PPT slide generation workflow for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+基于 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 的多智能体 PPT 幻灯片生成工作流。
 
-Generate presentation slides (SVG 1280×720 Bento Grid layout) powered by Claude + Gemini review.
+由 Claude 生成 + Gemini 审查，输出 SVG 1280×720 Bento Grid 布局的演示幻灯片。
 
-## Install
+## 安装
 
 ```bash
 claude plugin add github:zengwenliang416/ppt-agent
 ```
 
-## Usage
+## 使用
 
 ```
-/ppt-agent:ppt <topic or requirement>
+/ppt-agent:ppt <主题或需求描述>
 ```
 
-## Workflow
+## 工作流程
 
-1. **Init** — Parse arguments, create run directory
-2. **Requirement Research** — Background search + user clarification
-3. **Material Collection** — Per-section deep search (parallel)
-4. **Outline Planning** — Pyramid Principle outline + user approval
-5. **Planning Draft** — Simple SVG drafts per slide
-6. **Design Draft + Review** — Bento Grid SVG generation + Gemini quality review loop
-7. **Delivery** — Final SVGs + interactive HTML preview
+1. **初始化** — 解析参数，创建运行目录
+2. **需求调研** — 背景搜索 + 用户确认需求
+3. **素材收集** — 按章节并行深度搜索
+4. **大纲规划** — 金字塔原理结构化大纲 + 用户审批
+5. **规划草稿** — 每页生成简版 SVG 草稿
+6. **设计稿 + 审查** — Bento Grid SVG 生成 + Gemini 质量审查循环
+7. **交付** — 最终 SVG 文件 + 交互式 HTML 预览页
 
-## Agents
+## 智能体
 
-| Agent | Role |
-|-------|------|
-| `research-core` | Requirement research + material collection |
-| `content-core` | Outline planning + planning draft |
-| `slide-core` | Design SVG generation (Bento Grid) |
-| `review-core` | Gemini-powered SVG quality review |
+| 智能体 | 职责 |
+|--------|------|
+| `research-core` | 需求调研 + 素材收集 |
+| `content-core` | 大纲规划 + 规划草稿 |
+| `slide-core` | 设计 SVG 生成（Bento Grid 布局） |
+| `review-core` | Gemini 驱动的 SVG 质量审查 |
 
-## Output
+## 输出目录
 
 ```
 openspec/changes/<run_id>/
-├── research-context.md
-├── requirements.md
-├── materials.md
-├── outline.json
-├── drafts/slide-{nn}.svg
-├── slides/slide-{nn}.svg
-├── reviews/review-{nn}.md
+├── research-context.md      # 调研上下文
+├── requirements.md          # 需求文档
+├── materials.md             # 素材汇总
+├── outline.json             # 结构化大纲
+├── drafts/slide-{nn}.svg    # 规划草稿
+├── slides/slide-{nn}.svg    # 设计稿
+├── reviews/review-{nn}.md   # 审查报告
 └── output/
-    ├── slide-{nn}.svg      # Final SVGs
-    └── index.html           # Interactive preview
+    ├── slide-{nn}.svg       # 最终 SVG
+    └── index.html           # 交互式预览页
 ```
 
-## License
+## 许可证
 
 MIT
