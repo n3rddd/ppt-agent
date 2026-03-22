@@ -194,3 +194,7 @@ The minimum viable setup is **zero tools installed** — the agent always has `W
 - **Bilibili 412**: IP rate-limited. Try `--cookies-from-browser chrome` or use Jina Reader.
 - **Twitter fetch failed**: Use `--proxy` flag, or fall back to Exa `site:x.com` search.
 - **mcporter not found**: Most Tier 2 platforms won't work. Fall back to Jina Reader for individual URLs, `WebSearch` for search queries.
+
+## License
+
+This skill's command reference and platform architecture are derived from [Agent Reach](https://github.com/Panniantong/Agent-Reach) by Agent Eyes, licensed under the [MIT License](https://github.com/Panniantong/Agent-Reach/blob/main/LICENSE).
