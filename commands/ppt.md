@@ -45,8 +45,17 @@ Generate professional PPT slides as SVG files (1280x720) through a structured mu
 
 ## Phase 1: Init
 
-1. Parse flags: `--style` (default: `business`), `--pages` (default: `10-15`), `--run-id`.
+1. Parse flags: `--style` (optional), `--pages` (default: `10-15`), `--run-id`.
    Available styles are discovered from `skills/_shared/index.json` (filter resources where `domain == "style"`). Do NOT hardcode style names — read the registry.
+
+   **Style selection** (if `--style` not provided):
+   Read all available styles from index.json and call `AskUserQuestion` to let the user choose. Present styles grouped by mood:
+   - **Professional**: business, minimal, notion, scientific, editorial-infographic
+   - **Creative**: creative, bold-editorial, vector-illustration, sketch-notes, watercolor
+   - **Tech/Dark**: tech, blueprint, intuition-machine, pixel-art
+   - **Thematic**: chalkboard, fantasy-animation, vintage
+
+   Show the style `name` and `mood` (first sentence) from each YAML so the user can make an informed choice. If `--style` is explicitly provided, skip this step.
 2. Parse `--brand-colors` flag (optional). If provided, read the brand YAML file which should contain:
    ```yaml
    brand:
